@@ -1,3 +1,11 @@
+/**********************************************************************
+PACKAGE:        Utility
+FILE:           QUtilityBox.h
+COPYRIGHT (C):  All rights reserved.
+
+PURPOSE:        General tool box, provide buffer convert function and etc.
+**********************************************************************/
+
 #ifndef QUTILITYBOX_H
 #define QUTILITYBOX_H
 #include <QString>

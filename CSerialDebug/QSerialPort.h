@@ -1,5 +1,13 @@
-#ifndef SERIALCOMMUNICATION_H
-#define SERIALCOMMUNICATION_H
+/**********************************************************************
+PACKAGE:        Communication
+FILE:           QSerialPort.h
+COPYRIGHT (C):  All rights reserved.
+
+PURPOSE:        Serial Port interface based on QextSerialBase
+**********************************************************************/
+
+#ifndef QSERIALPORT_H
+#define QSERIALPORT_H
 #include <QThread>
 #include <QTimer>
 #include <QMutex>
@@ -10,13 +18,13 @@
 #include "LoopBuffer.h"
 
 
-class SerialCommunication : public QThread
+class QSerialPort : public QThread
 {
     Q_OBJECT
 public:
-    SerialCommunication(struct COM_PORT_INIT_DATA *initData);
-    SerialCommunication();
-    virtual ~SerialCommunication();
+    QSerialPort(struct COM_PORT_INIT_DATA *initData);
+    QSerialPort();
+    virtual ~QSerialPort();
 
     void run();
 
@@ -25,8 +33,9 @@ public:
 
     // Write data to printer
     int writeData(const char *txData, int len);
+    int writeData(QByteArray &txData);
 
-    bool isComPortOpen();   // Check whether the COM port is opened successful
+    bool isOpen();   // Check whether the COM port is opened successful
 
     void setBaudRate(BaudRateType baudrate);
     void setParity(ParityType parity);
@@ -47,6 +56,7 @@ public:
 
 signals:
     void newDataReady(QByteArray);
+    void newDataTx(QByteArray);
 
 protected slots:
     void readDataFromCOM();      // Read data from COM port
@@ -63,7 +73,7 @@ private:
     QTimer *timerForRx; // This timer is used to trig the com port to read data
 
     char *txBuffer;        // Transmit buffer
-    struct COM_PORT_INIT_DATA *comInitData; // Printer COM port init data
+    struct COM_PORT_INIT_DATA *comInitData; // COM port init data
     LoopBuffer *rxLoopBuffer;
 
     QMutex mutex;   // locker
@@ -81,4 +91,4 @@ private:
 
 };
 
-#endif // SERIALCOMMUNICATION_H
+#endif // QSERIALPORT_H

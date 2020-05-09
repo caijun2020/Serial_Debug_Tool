@@ -1,5 +1,14 @@
-#include "SerialCommunication.h"
+/**********************************************************************
+PACKAGE:        Communication
+FILE:           QSerialPort.cpp
+COPYRIGHT (C):  All rights reserved.
+
+PURPOSE:        Serial Port interface based on QextSerialBase
+**********************************************************************/
+
+#include "QSerialPort.h"
 #include <QSettings>
+#include <QMutexLocker>
 #include <QDebug>
 
 #ifdef Q_OS_WIN
@@ -12,7 +21,7 @@
 
 //#define __SERIAL_CONSOLE_DEBUG__
 
-SerialCommunication::SerialCommunication(COM_PORT_INIT_DATA *initData) :
+QSerialPort::QSerialPort(COM_PORT_INIT_DATA *initData) :
     comPort(NULL)
 {
     init();
@@ -20,23 +29,23 @@ SerialCommunication::SerialCommunication(COM_PORT_INIT_DATA *initData) :
     open(initData);
 }
 
-SerialCommunication::SerialCommunication() :
+QSerialPort::QSerialPort() :
     comPort(NULL)
 {
     init();
 }
 
-SerialCommunication::~SerialCommunication()
+QSerialPort::~QSerialPort()
 {
     deInit();
 }
 
-void SerialCommunication::run()
+void QSerialPort::run()
 {
 }
 
 
-void SerialCommunication::init()
+void QSerialPort::init()
 {
     // Reset tx/rx bytes count
     resetTxRxCnt();
@@ -55,7 +64,7 @@ void SerialCommunication::init()
     connect(timerForRx, SIGNAL(timeout()), this, SLOT(readDataFromCOM()));
 }
 
-void SerialCommunication::deInit()
+void QSerialPort::deInit()
 {
     timerForRx->stop();
 
@@ -71,7 +80,7 @@ void SerialCommunication::deInit()
     delete timerForRx;
 }
 
-bool SerialCommunication::open(struct COM_PORT_INIT_DATA *initData)
+bool QSerialPort::open(struct COM_PORT_INIT_DATA *initData)
 {
     bool ret = false;
     QString portName = "";
@@ -102,7 +111,7 @@ bool SerialCommunication::open(struct COM_PORT_INIT_DATA *initData)
     comPort->setTimeout(10);    // Set timeout=10ms
 
     // If COM port is open, then start to read data from COM port
-    if(isComPortOpen())
+    if(isOpen())
     {
         ret = true;
         timerForRx->start(50);  //timeOut = 50ms
@@ -111,7 +120,7 @@ bool SerialCommunication::open(struct COM_PORT_INIT_DATA *initData)
     return ret;
 }
 
-void SerialCommunication::close()
+void QSerialPort::close()
 {
     timerForRx->stop();
 
@@ -123,7 +132,7 @@ void SerialCommunication::close()
     }
 }
 
-bool SerialCommunication::isComPortOpen()
+bool QSerialPort::isOpen()
 {
     bool ret = false;
 
@@ -135,7 +144,7 @@ bool SerialCommunication::isComPortOpen()
     return ret;
 }
 
-int SerialCommunication::writeData(const char* txData, int len)
+int QSerialPort::writeData(const char* txData, int len)
 {
     int ret = 0;
 
@@ -153,6 +162,9 @@ int SerialCommunication::writeData(const char* txData, int len)
         {
             ret = comPort->write(txData, len);
             txTotalBytesSize += len;
+
+            // Emit signal
+            emit newDataTx(QByteArray(txData, len));
         }
         else
         {
@@ -163,8 +175,15 @@ int SerialCommunication::writeData(const char* txData, int len)
     return ret;
 }
 
-void SerialCommunication::readDataFromCOM()
+int QSerialPort::writeData(QByteArray &txData)
 {
+    return writeData(txData.constData(), txData.length());
+}
+
+void QSerialPort::readDataFromCOM()
+{
+    QMutexLocker locker(&mutex);
+
     if(NULL == comPort)
     {
         return;
@@ -186,7 +205,7 @@ void SerialCommunication::readDataFromCOM()
     }
 }
 
-void SerialCommunication::setBaudRate(BaudRateType baudrate)
+void QSerialPort::setBaudRate(BaudRateType baudrate)
 {
     if(NULL == comPort)
     {
@@ -197,7 +216,7 @@ void SerialCommunication::setBaudRate(BaudRateType baudrate)
     comPort->setBaudRate(comInitData->baudrate);
 }
 
-void SerialCommunication::setParity(ParityType parity)
+void QSerialPort::setParity(ParityType parity)
 {
     if(NULL == comPort)
     {
@@ -208,7 +227,7 @@ void SerialCommunication::setParity(ParityType parity)
     comPort->setParity(comInitData->parity);
 }
 
-void SerialCommunication::setDataBits(DataBitsType databits)
+void QSerialPort::setDataBits(DataBitsType databits)
 {
     if(NULL == comPort)
     {
@@ -219,7 +238,7 @@ void SerialCommunication::setDataBits(DataBitsType databits)
     comPort->setDataBits(comInitData->databits);
 }
 
-void SerialCommunication::setStopBits(StopBitsType stopbits)
+void QSerialPort::setStopBits(StopBitsType stopbits)
 {
     if(NULL == comPort)
     {
@@ -230,7 +249,7 @@ void SerialCommunication::setStopBits(StopBitsType stopbits)
     comPort->setStopBits(comInitData->stopbits);
 }
 
-void SerialCommunication::setFlowControl(FlowType flowtype)
+void QSerialPort::setFlowControl(FlowType flowtype)
 {
     if(NULL == comPort)
     {
@@ -241,7 +260,7 @@ void SerialCommunication::setFlowControl(FlowType flowtype)
     comPort->setFlowControl(comInitData->flowtype); //flow control, FLOW_OFF, FLOW_HARDWARE, FLOW_XONXOFF
 }
 
-QStringList SerialCommunication::getAvailablePorts()
+QStringList QSerialPort::getAvailablePorts()
 {
     QStringList portList;
     portList.clear();
@@ -265,7 +284,7 @@ QStringList SerialCommunication::getAvailablePorts()
 }
 
 #ifdef Q_OS_WIN
-QString SerialCommunication::getComInfoFromReg(int index, QString keyorvalue)
+QString QSerialPort::getComInfoFromReg(int index, QString keyorvalue)
 {
     QString commresult = "";
     HKEY hKey;
@@ -316,26 +335,28 @@ QString SerialCommunication::getComInfoFromReg(int index, QString keyorvalue)
 }
 #endif
 
-uint32_t SerialCommunication::getTotalTxBytes() const
+uint32_t QSerialPort::getTotalTxBytes() const
 {
     return txTotalBytesSize;
 }
 
-uint32_t SerialCommunication::getTotalRxBytes() const
+uint32_t QSerialPort::getTotalRxBytes() const
 {
     return rxTotalBytesSize;
 }
 
-void SerialCommunication::resetTxRxCnt()
+void QSerialPort::resetTxRxCnt()
 {
     txTotalBytesSize = 0;
     rxTotalBytesSize = 0;
 }
 
-bool SerialCommunication::getUndealData(uint8_t *dataP, uint32_t &len)
+bool QSerialPort::getUndealData(uint8_t *dataP, uint32_t &len)
 {
+    bool ret = false;
+    QMutexLocker locker(&mutex);
     QByteArray temp;
-    bool ret = getUndealData(temp);
+    ret = getUndealData(temp);
 
     if(ret)
     {
@@ -346,9 +367,10 @@ bool SerialCommunication::getUndealData(uint8_t *dataP, uint32_t &len)
     return ret;
 }
 
-bool SerialCommunication::getUndealData(QByteArray &data)
+bool QSerialPort::getUndealData(QByteArray &data)
 {
     bool ret = false;
+    QMutexLocker locker(&mutex);
 
     data = rxLoopBuffer->readAll();
     if(!data.isEmpty())

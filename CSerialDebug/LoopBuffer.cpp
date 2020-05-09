@@ -1,4 +1,4 @@
-#include "loopbuffer.h"
+#include "LoopBuffer.h"
 #include <QDebug>
 
 LoopBuffer::LoopBuffer(int bufferSize) :

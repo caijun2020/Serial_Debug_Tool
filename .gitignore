@@ -1,0 +1,11 @@
+## Ignore temporary files, build results
+
+# User-specific files
+*.user
+*.o
+*.Debug
+*.Release
+
+
+# Build results
+OBJ/

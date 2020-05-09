@@ -4,19 +4,19 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    serialPort(new SerialCommunication),
+    serialPort(new QSerialPort),
     serialDebugW(new SerialDebugWidget)
 {
     ui->setupUi(this);
 
     serialDebugW->setParent(ui->centralWidget);
-    serialDebugW->bindComHandler(serialPort);
+    serialDebugW->bindModel(serialPort);
 
     // Set Window Title
     this->setWindowTitle(tr("Serial Debug"));
 
     // Set Menu Bar Version Info
-    ui->menuVersion->addAction("V1.0 2020-Apr-23");
+    ui->menuVersion->addAction("V1.0 2020-May-09");
 }
 
 MainWindow::~MainWindow()

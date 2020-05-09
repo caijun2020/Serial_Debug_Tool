@@ -14,14 +14,14 @@ SOURCES += main.cpp\
         mainwindow.cpp \
     SerialDebugWidget.cpp \
     qextserialbase.cpp \
-    SerialCommunication.cpp \
+    QSerialPort.cpp \
     LoopBuffer.cpp \
     QUtilityBox.cpp
 
 HEADERS  += mainwindow.h \
     SerialDebugWidget.h \
     qextserialbase.h \
-    SerialCommunication.h \
+    QSerialPort.h \
     ComInitData.h \
     LoopBuffer.h \
     QtBaseType.h \

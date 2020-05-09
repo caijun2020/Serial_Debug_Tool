@@ -2,6 +2,11 @@ Serial Debug Tool
 
 Development by Qt 4.8.1
 
+Version: V1.0 2020-May-09
+1. Change class name SerialCommunication to QSerialPort
+2. Add a new signal newDataTx(QByteArray) in class QSerialPort 
+
+
 Version: V1.0 2020-Apr-23
 1. Implemented serial port basic transmit/receive functions
 2. Automatically get available ports on Windows OS

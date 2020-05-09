@@ -2,7 +2,7 @@
 #define SERIALDEBUGWIDGET_H
 
 #include <QWidget>
-#include "SerialCommunication.h"
+#include "QSerialPort.h"
 
 namespace Ui {
 class SerialDebugWidget;
@@ -13,11 +13,11 @@ class SerialDebugWidget : public QWidget
     Q_OBJECT
     
 public:
-    explicit SerialDebugWidget(SerialCommunication *portHandler = NULL, QWidget *parent = 0);
+    explicit SerialDebugWidget(QSerialPort *portHandler = NULL, QWidget *parent = 0);
     ~SerialDebugWidget();
 
-    // Bind SerialCommunication handler
-    void bindComHandler(SerialCommunication *portHandler);
+    // Bind QSerialPort handler
+    void bindModel(QSerialPort *portHandler);
 
     // Send data
     void sendData(QByteArray &data);
@@ -59,7 +59,7 @@ private:
 
     Ui::SerialDebugWidget *ui;
 
-    SerialCommunication *serialPort;    // COM port handler
+    QSerialPort *serialPort;    // COM port handler
     struct COM_PORT_INIT_DATA *comInitData; // COM port init data
 
     QString widgetFontType; // Store the font type of widget

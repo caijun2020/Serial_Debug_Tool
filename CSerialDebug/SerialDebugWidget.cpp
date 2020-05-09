@@ -48,7 +48,7 @@ SerialDebugWidget::COMBOX_LIST flowType_combox[] =
 };
 
 
-SerialDebugWidget::SerialDebugWidget(SerialCommunication *portHandler, QWidget *parent) :
+SerialDebugWidget::SerialDebugWidget(QSerialPort *portHandler, QWidget *parent) :
     QWidget(parent),
     ui(new Ui::SerialDebugWidget),
     serialPort(portHandler),
@@ -188,7 +188,7 @@ void SerialDebugWidget::on_pushButton_send_clicked()
     sendData(tempTxBuf);
 }
 
-void SerialDebugWidget::bindComHandler(SerialCommunication *portHandler)
+void SerialDebugWidget::bindModel(QSerialPort *portHandler)
 {
     if(NULL != portHandler)
     {
@@ -208,10 +208,7 @@ void SerialDebugWidget::bindComHandler(SerialCommunication *portHandler)
 
 void SerialDebugWidget::sendData(QByteArray &data)
 {
-    if(NULL != serialPort)
-    {
-        serialPort->writeData(data.data(), data.length());
-    }
+    sendData(data.data(), data.length());
 }
 
 void SerialDebugWidget::sendData(const char *data, uint32_t len)
@@ -241,14 +238,14 @@ void SerialDebugWidget::on_pushButton_open_clicked()
     comInitData->stopbits = static_cast<StopBitsType>(stopBits_combox[ui->comboBox_stopBits->currentIndex()].value);
     comInitData->flowtype = static_cast<FlowType>(flowType_combox[ui->comboBox_flowControl->currentIndex()].value);
 
-    isOpenFlag = serialPort->isComPortOpen();
+    isOpenFlag = serialPort->isOpen();
 
     // If port is closed, then open it
     if(!isOpenFlag)
     {
         serialPort->open(comInitData);
 
-        isOpenFlag = serialPort->isComPortOpen();
+        isOpenFlag = serialPort->isOpen();
         if(!isOpenFlag)
         {
             QMessageBox::information(this, tr("Notice"), warningStr);
@@ -259,7 +256,7 @@ void SerialDebugWidget::on_pushButton_open_clicked()
         serialPort->close();
     }
 
-    isOpenFlag = serialPort->isComPortOpen();
+    isOpenFlag = serialPort->isOpen();
 
     // Update UI display
     if(isOpenFlag)

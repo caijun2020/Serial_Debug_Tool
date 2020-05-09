@@ -4,7 +4,7 @@
 #include <QMainWindow>
 
 #include "SerialDebugWidget.h"
-#include "SerialCommunication.h"
+#include "QSerialPort.h"
 
 namespace Ui {
 class MainWindow;
@@ -24,7 +24,7 @@ protected:
 private:
     Ui::MainWindow *ui;
 
-    SerialCommunication *serialPort;
+    QSerialPort *serialPort;
     SerialDebugWidget *serialDebugW;
 };
 
