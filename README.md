@@ -2,6 +2,13 @@ Serial Debug Tool
 
 Development by Qt 4.8.1
 
+
+Version: V1.0 2020-Aug-04
+1. Add hex format and auto clear in UI SerialDebugWidget
+2. Use signals and slots to start/stop timerForRx in class QSerialPort for multi-thread programming
+3. Add signals and slots startPolling(), stopPolling() and slots startPollingTimer() and stopPollingTimer() in class QSerialPort
+
+
 Version: V1.0 2020-May-09
 1. Change class name SerialCommunication to QSerialPort
 2. Add a new signal newDataTx(QByteArray) in class QSerialPort 
@@ -15,11 +22,5 @@ Version: V1.0 2020-Apr-23
 5. Support timestamp display
 6. Show Tx and Rx bytes
 7. Support auto send, send interval is configured from 1 to 100000 ms
-
-
-Version: V1.0 2020-Aug-04
-1. Add hex format and auto clear in UI SerialDebugWidget
-2. Use signals and slots to start/stop timerForRx in class QSerialPort for multi-thread programming
-3. Add signals and slots startPolling(), stopPolling() and slots startPollingTimer() and stopPollingTimer()  in class QSerialPort
 
 
