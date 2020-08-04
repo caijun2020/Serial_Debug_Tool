@@ -16,7 +16,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setWindowTitle(tr("Serial Debug"));
 
     // Set Menu Bar Version Info
-    ui->menuVersion->addAction("V1.0 2020-May-09");
+    ui->menuVersion->addAction("V1.0 2020-Aug-04");
 }
 
 MainWindow::~MainWindow()

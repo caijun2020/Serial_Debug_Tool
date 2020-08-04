@@ -57,9 +57,13 @@ public:
 signals:
     void newDataReady(QByteArray);
     void newDataTx(QByteArray);
+    void startPolling();
+    void stopPolling();
 
 protected slots:
     void readDataFromCOM();      // Read data from COM port
+    void startPollingTimer();    // Start polling timer
+    void stopPollingTimer();    // Stop polling timer
 
 private:
     enum

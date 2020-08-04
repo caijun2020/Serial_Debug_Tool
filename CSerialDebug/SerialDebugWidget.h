@@ -1,3 +1,10 @@
+/**********************************************************************
+PACKAGE:        Communication
+FILE:           SerialDebugWidget.h
+COPYRIGHT (C):  All rights reserved.
+
+PURPOSE:        Serial Port Debug Widget UI
+**********************************************************************/
 #ifndef SERIALDEBUGWIDGET_H
 #define SERIALDEBUGWIDGET_H
 
@@ -16,11 +23,37 @@ public:
     explicit SerialDebugWidget(QSerialPort *portHandler = NULL, QWidget *parent = 0);
     ~SerialDebugWidget();
 
-    // Bind QSerialPort handler
+    /*-----------------------------------------------------------------------
+    FUNCTION:		bindModel
+    PURPOSE:		Bind a QSerialPort model
+    ARGUMENTS:		QSerialPort *portHandler -- QSerialPort pointer
+    RETURNS:		None
+    -----------------------------------------------------------------------*/
     void bindModel(QSerialPort *portHandler);
 
-    // Send data
+    /*-----------------------------------------------------------------------
+    FUNCTION:		unbind
+    PURPOSE:		Unbind the QSerialPort model
+    ARGUMENTS:		None
+    RETURNS:		None
+    -----------------------------------------------------------------------*/
+    void unbind();
+
+    /*-----------------------------------------------------------------------
+    FUNCTION:		sendData
+    PURPOSE:		Send data to serial port
+    ARGUMENTS:		QByteArray &data     -- tx data buffer
+    RETURNS:		None
+    -----------------------------------------------------------------------*/
     void sendData(QByteArray &data);
+
+    /*-----------------------------------------------------------------------
+    FUNCTION:		sendData
+    PURPOSE:		Send data to serial port
+    ARGUMENTS:		const char *data     -- tx data buffer pointer
+                    uint32_t len         -- tx data length
+    RETURNS:		None
+    -----------------------------------------------------------------------*/
     void sendData(const char *data, uint32_t len);
 
 public:
@@ -55,6 +88,10 @@ private slots:
 
     void on_checkBox_timeStamp_clicked(bool checked);
 
+    void on_checkBox_autoClear_clicked(bool checked);
+
+    void on_checkBox_hex_clicked(bool checked);
+
 private:
 
     Ui::SerialDebugWidget *ui;
@@ -67,9 +104,11 @@ private:
 
     bool isOpenFlag;    // True: COM port is open
     bool timeStampFlag; // This flag is used to enable timestamp info
+    bool hexFormatFlag; // This flag is used to enable hex format show
+    bool autoClearRxFlag; // This flag is used to clear rx buffer automatically
 
-    QTimer refreshUITimer;
-    QTimer autoSendTimer;
+    QTimer refreshUITimer;  // Timer used to refresh tx/rx bytes
+    QTimer autoSendTimer;   // Timer used to auto send data
 
     void initWidgetFont();  // Init the Font type and size
     void initWidgetStyle(); // Init widget style

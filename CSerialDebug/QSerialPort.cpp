@@ -22,7 +22,8 @@ PURPOSE:        Serial Port interface based on QextSerialBase
 //#define __SERIAL_CONSOLE_DEBUG__
 
 QSerialPort::QSerialPort(COM_PORT_INIT_DATA *initData) :
-    comPort(NULL)
+    comPort(NULL),
+    timerForRx(NULL)
 {
     init();
 
@@ -30,7 +31,8 @@ QSerialPort::QSerialPort(COM_PORT_INIT_DATA *initData) :
 }
 
 QSerialPort::QSerialPort() :
-    comPort(NULL)
+    comPort(NULL),
+    timerForRx(NULL)
 {
     init();
 }
@@ -60,13 +62,18 @@ void QSerialPort::init()
     rxLoopBuffer = new LoopBuffer(RX_BUF_SIZE);
     //rxLoopBuffer->setMsgEndChar(MSG_END_FLAG_1);
 
-    timerForRx = new QTimer(this);
-    connect(timerForRx, SIGNAL(timeout()), this, SLOT(readDataFromCOM()));
+    connect(this, SIGNAL(startPolling()), this, SLOT(startPollingTimer()));
+    connect(this, SIGNAL(stopPolling()), this, SLOT(stopPollingTimer()));
 }
 
 void QSerialPort::deInit()
 {
-    timerForRx->stop();
+    if(NULL != timerForRx)
+    {
+        timerForRx->stop();
+        delete timerForRx;
+        timerForRx = NULL;
+    }
 
     if(comPort != NULL)
     {
@@ -77,7 +84,6 @@ void QSerialPort::deInit()
     delete comInitData;
     delete []txBuffer;
     delete rxLoopBuffer;
-    delete timerForRx;
 }
 
 bool QSerialPort::open(struct COM_PORT_INIT_DATA *initData)
@@ -114,7 +120,7 @@ bool QSerialPort::open(struct COM_PORT_INIT_DATA *initData)
     if(isOpen())
     {
         ret = true;
-        timerForRx->start(50);  //timeOut = 50ms
+        emit startPolling();
     }
 
     return ret;
@@ -122,7 +128,7 @@ bool QSerialPort::open(struct COM_PORT_INIT_DATA *initData)
 
 void QSerialPort::close()
 {
-    timerForRx->stop();
+    emit stopPolling();
 
     if(comPort != NULL)
     {
@@ -182,8 +188,6 @@ int QSerialPort::writeData(QByteArray &txData)
 
 void QSerialPort::readDataFromCOM()
 {
-    QMutexLocker locker(&mutex);
-
     if(NULL == comPort)
     {
         return;
@@ -195,13 +199,37 @@ void QSerialPort::readDataFromCOM()
 
         if(!temp.isEmpty())
         {
-            rxLoopBuffer->writeData(temp);
+            {
+                QMutexLocker locker(&mutex);
+                rxLoopBuffer->writeData(temp);
+            }
 
             rxTotalBytesSize += temp.length();
 
             // Emit signal
             emit newDataReady(temp);
         }
+    }
+}
+
+void QSerialPort::startPollingTimer()
+{
+    if(NULL != timerForRx)
+    {
+        timerForRx->stop();
+        delete timerForRx;
+    }
+
+    timerForRx = new QTimer();
+    connect(timerForRx, SIGNAL(timeout()), this, SLOT(readDataFromCOM()));
+    timerForRx->start(50);  //timeOut = 50ms
+}
+
+void QSerialPort::stopPollingTimer()
+{
+    if(NULL != timerForRx)
+    {
+        timerForRx->stop();
     }
 }
 
@@ -354,14 +382,13 @@ void QSerialPort::resetTxRxCnt()
 bool QSerialPort::getUndealData(uint8_t *dataP, uint32_t &len)
 {
     bool ret = false;
-    QMutexLocker locker(&mutex);
     QByteArray temp;
     ret = getUndealData(temp);
 
     if(ret)
     {
         len = temp.size();
-        memcpy(dataP, temp.data(), temp.size());
+        memcpy(dataP, temp.constData(), temp.size());
     }
 
     return ret;

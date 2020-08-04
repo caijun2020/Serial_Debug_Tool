@@ -17,3 +17,9 @@ Version: V1.0 2020-Apr-23
 7. Support auto send, send interval is configured from 1 to 100000 ms
 
 
+Version: V1.0 2020-Aug-04
+1. Add hex format and auto clear in UI SerialDebugWidget
+2. Use signals and slots to start/stop timerForRx in class QSerialPort for multi-thread programming
+3. Add signals and slots startPolling(), stopPolling() and slots startPollingTimer() and stopPollingTimer()  in class QSerialPort
+
+

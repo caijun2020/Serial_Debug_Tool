@@ -1,3 +1,11 @@
+/**********************************************************************
+PACKAGE:        Communication
+FILE:           SerialDebugWidget.cpp
+COPYRIGHT (C):  All rights reserved.
+
+PURPOSE:        Serial Port Debug Widget UI
+**********************************************************************/
+
 #include "SerialDebugWidget.h"
 #include "ui_SerialDebugWidget.h"
 #include "qextserialbase.h"
@@ -56,7 +64,9 @@ SerialDebugWidget::SerialDebugWidget(QSerialPort *portHandler, QWidget *parent) 
     widgetFontType("Arial"),
     widgetFontSize(10),
     isOpenFlag(false),
-    timeStampFlag(false)
+    timeStampFlag(false),
+    hexFormatFlag(true),
+    autoClearRxFlag(true)
 {
     ui->setupUi(this);
 
@@ -164,6 +174,10 @@ void SerialDebugWidget::initWidgetStyle()
         ui->comboBox_port->clear();
         ui->comboBox_port->insertItems(0, comPorts);
     }
+
+    ui->checkBox_timeStamp->setChecked(timeStampFlag);
+    ui->checkBox_autoClear->setChecked(autoClearRxFlag);
+    ui->checkBox_hex->setChecked(hexFormatFlag);
 }
 
 void SerialDebugWidget::on_pushButton_send_clicked()
@@ -174,7 +188,7 @@ void SerialDebugWidget::on_pushButton_send_clicked()
     QUtilityBox utilityBox;
 
     // Hex format
-    if(ui->checkBox_hex->isChecked())
+    if(hexFormatFlag)
     {
         txLen = utilityBox.convertHexStringToDataBuffer(tempBuf, ui->textEdit_txData->toPlainText());
         tempTxBuf = QByteArray((char *)tempBuf, txLen);
@@ -192,10 +206,7 @@ void SerialDebugWidget::bindModel(QSerialPort *portHandler)
 {
     if(NULL != portHandler)
     {
-        if(NULL != serialPort)
-        {
-            disconnect(serialPort, 0, this, 0);
-        }
+        unbind();
 
         serialPort = portHandler;
         connect(serialPort, SIGNAL(newDataReady(QByteArray)), this, SLOT(updateIncomingData(QByteArray)));
@@ -204,6 +215,16 @@ void SerialDebugWidget::bindModel(QSerialPort *portHandler)
         ui->comboBox_port->clear();
         ui->comboBox_port->insertItems(0, comPorts);
     }
+}
+
+void SerialDebugWidget::unbind()
+{
+    if(NULL != serialPort)
+    {
+        disconnect(serialPort, 0 , this , 0);
+    }
+
+    serialPort = NULL;
 }
 
 void SerialDebugWidget::sendData(QByteArray &data)
@@ -319,7 +340,7 @@ void SerialDebugWidget::updateIncomingData(QByteArray data)
     // Emit signal
     emit newDataReady(data);
 
-    if(ui->checkBox_hex->isChecked())
+    if(hexFormatFlag)
     {
         dataStr = utilityBox.convertDataToHexString(data);
     }
@@ -355,6 +376,16 @@ void SerialDebugWidget::on_checkBox_timeStamp_clicked(bool checked)
     timeStampFlag = checked;
 }
 
+void SerialDebugWidget::on_checkBox_autoClear_clicked(bool checked)
+{
+    autoClearRxFlag = checked;
+}
+
+void SerialDebugWidget::on_checkBox_hex_clicked(bool checked)
+{
+    hexFormatFlag = checked;
+}
+
 void SerialDebugWidget::updateLogData(QString logStr)
 {
     QDateTime time = QDateTime::currentDateTime();
@@ -365,6 +396,15 @@ void SerialDebugWidget::updateLogData(QString logStr)
         // Add time stamp
         logStr.prepend(timeStr);
         logStr.append("\n");
+    }
+
+    if(autoClearRxFlag)
+    {
+        // Rx buffer > 20k bytes, clear and reset
+        if(ui->textEdit_rxData->toPlainText().size() > 20000)
+        {
+            ui->textEdit_rxData->clear();
+        }
     }
 
     ui->textEdit_rxData->insertPlainText(logStr); //Display in the textBrowser
